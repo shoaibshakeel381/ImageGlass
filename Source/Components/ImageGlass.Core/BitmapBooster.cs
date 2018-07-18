@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Drawing;
 using System.Drawing.Imaging;
+//using System.Windows;
+using System.Windows.Media.Imaging;
 
 namespace ImageGlass.Core
 {
@@ -15,24 +17,23 @@ namespace ImageGlass.Core
         public BitmapBooster(Bitmap src)
         {
             this.src = src;
-            bd = src.LockBits(
-                new Rectangle(Point.Empty, src.Size),
-                ImageLockMode.ReadWrite,
-                PixelFormat.Format32bppArgb);
+            bd = src.LockBits(new Rectangle(Point.Empty, src.Size), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
             dst = bd.Scan0;
             str = bd.Stride;
         }
+
         public void Dispose()
         {
             src.UnlockBits(bd);
         }
 
-        public Color get(int x, int y)
+        public Color Get(int x, int y)
         {
             unsafe
             {
                 byte* o = (byte*)dst;
                 int ofs = str * y + x * 4;
+
                 return Color.FromArgb(
                     o[ofs + 3],
                     o[ofs + 2],
@@ -41,7 +42,7 @@ namespace ImageGlass.Core
             }
         }
 
-        public void set(int x, int y, Color c)
+        public void Set(int x, int y, Color c)
         {
             unsafe
             {
@@ -54,7 +55,7 @@ namespace ImageGlass.Core
             }
         }
 
-        public void set(int x, int y, byte alpha)
+        public void Set(int x, int y, byte alpha)
         {
             unsafe
             {
@@ -62,7 +63,7 @@ namespace ImageGlass.Core
             }
         }
 
-        public static int min(params int[] values)
+        public static int Min(params int[] values)
         {
             int ret = values[0];
             for (int a = 1; a < values.Length; a++)
@@ -71,7 +72,7 @@ namespace ImageGlass.Core
             }
             return ret;
         }
-        public static int max(params int[] values)
+        public static int Max(params int[] values)
         {
             int ret = values[0];
             for (int a = 1; a < values.Length; a++)
@@ -79,6 +80,26 @@ namespace ImageGlass.Core
                 ret = Math.Max(ret, values[a]);
             }
             return ret;
+        }
+
+
+        /// <summary>
+        /// Convert BitmapSource to Bitmap
+        /// </summary>
+        /// <param name="bitmapsource"></param>
+        /// <returns></returns>
+        public static Bitmap BitmapFromSource(BitmapSource bitmapsource)
+        {
+            Bitmap bitmap;
+            using (System.IO.MemoryStream outStream = new System.IO.MemoryStream())
+            {
+                BitmapEncoder enc = new BmpBitmapEncoder();
+
+                enc.Frames.Add(BitmapFrame.Create(bitmapsource));
+                enc.Save(outStream);
+                bitmap = new Bitmap(outStream);
+            }
+            return bitmap;
         }
     }
 }

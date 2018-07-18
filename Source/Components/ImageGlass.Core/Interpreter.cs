@@ -1,7 +1,9 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Drawing.IconLib;
+using System.Windows.Media.Imaging;
 using ImageMagick;
 
 namespace ImageGlass.Core
@@ -26,7 +28,11 @@ namespace ImageGlass.Core
                 case ".gif":
                     using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read))
                     {
-                        bmp = new Bitmap(path, true);
+                        var ms = new MemoryStream();
+                        fs.CopyTo(ms);
+                        ms.Position = 0;
+
+                        bmp = new Bitmap(ms, true);
                     }
                     break;
 
@@ -35,10 +41,22 @@ namespace ImageGlass.Core
                     break;
 
                 default:
-                    GetBitmapFromFile();
+                    try
+                    {
+                        GetBitmapFromFile();
+
+                        if (bmp == null)
+                        {
+                            GetBitmapFromWic();
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        GetBitmapFromWic();
+                    }
                     break;
             }
-            
+
             void GetBitmapFromFile()
             {
                 var settings = new MagickReadSettings();
@@ -55,8 +73,24 @@ namespace ImageGlass.Core
                 }
 
 
+                //using (var magicColl = new MagickImageCollection())
+                //{
+                //    magicColl.Read(new FileInfo(path), settings);
+
+                //    if (magicColl.Count > 0)
+                //    {
+                //        magicColl[0].Quality = 100;
+                //        magicColl[0].AddProfile(ColorProfile.SRGB);
+
+                //        bmp = BitmapBooster.BitmapFromSource(magicColl[0].ToBitmapSource());
+                //    }
+                //}
+
+
                 using (var magicImg = new MagickImage(path, settings))
                 {
+                    magicImg.Quality = 100;
+
                     //Get Exif information
                     var profile = magicImg.GetExifProfile();
                     if (profile != null)
@@ -78,14 +112,83 @@ namespace ImageGlass.Core
 
                     }
 
-                    //corect the image color 
+                    //corect the image color
                     magicImg.AddProfile(ColorProfile.SRGB);
 
-                    bmp = magicImg.ToBitmap();
+                    if (ext.CompareTo(".heic") == 0)
+                    {
+                        // NOTE: ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                        // There is a bug with Magick.NET v7.4.5 
+                        // that ToBitmap() function will return wrong colorspace:
+                        // https://github.com/dlemstra/Magick.NET/issues/153#issuecomment-388080405
+                        // ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                        // Hence, we need to export to BitmapSource then convert to Bitmap again
+                        bmp = BitmapBooster.BitmapFromSource(magicImg.ToBitmapSource());
+                    }
+                    else
+                    {
+                        bmp = magicImg.ToBitmap();
+                    }
+
+                        
                 }
             }
-            
+
+            void GetBitmapFromWic()
+            {
+                var src = LoadImage(path);
+                bmp = BitmapFromSource(src);
+            }
+
             return bmp;
+        }
+
+        /// <summary>
+        /// Load image file using WIC
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <param name="frameIndex"></param>
+        /// <returns></returns>
+        private static BitmapSource LoadImage(string filename, int frameIndex = 0)
+        {
+            using (var inFile = File.OpenRead(filename))
+            {
+                var decoder = BitmapDecoder.Create(inFile, BitmapCreateOptions.None, BitmapCacheOption.None);
+                return Convert(decoder.Frames[frameIndex]);
+            }
+        }
+
+        private static BitmapSource Convert(BitmapFrame frame)
+        {
+            int stride = frame.PixelWidth * (frame.Format.BitsPerPixel / 8);
+            byte[] pixels = new byte[frame.PixelHeight * stride];
+
+            frame.CopyPixels(pixels, stride, 0);
+
+            var bmpSource = BitmapSource.Create(frame.PixelWidth, frame.PixelHeight,
+                frame.DpiX, frame.DpiY, frame.Format, frame.Palette, pixels, stride);
+
+            return bmpSource;
+        }
+
+        /// <summary>
+        /// Load image file using WIC
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <param name="frameIndex"></param>
+        /// <returns></returns>
+        public static Bitmap BitmapFromSource(BitmapSource bitmapsource)
+        {
+            Bitmap bitmap;
+            using (var outStream = new MemoryStream())
+            {
+                // Use a PNG encoder to support transparency
+                BitmapEncoder enc = new PngBitmapEncoder();
+                enc.Frames.Add(BitmapFrame.Create(bitmapsource));
+                enc.Save(outStream);
+                bitmap = new Bitmap(outStream);
+            }
+            return bitmap;
         }
 
         /// <summary>

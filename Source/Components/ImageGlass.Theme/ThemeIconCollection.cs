@@ -24,7 +24,7 @@ namespace ImageGlass.Theme
         public ThemeImage About { get; set; }
         public ThemeImage ActualSize { get; set; }
         public ThemeImage AdjustWindowSize { get; set; }
-        public ThemeImage CheckedBackground { get; set; }
+        public ThemeImage Checkerboard { get; set; }
         public ThemeImage Convert { get; set; }
         public ThemeImage FullScreen { get; set; }
         public ThemeImage GoToImage { get; set; }
@@ -36,6 +36,7 @@ namespace ImageGlass.Theme
         public ThemeImage Refresh { get; set; }
         public ThemeImage RotateLeft { get; set; }
         public ThemeImage RotateRight { get; set; }
+        public ThemeImage Detele { get; set; }
         public ThemeImage ScaleToHeight { get; set; }
         public ThemeImage ScaleToWidth { get; set; }
         public ThemeImage Settings { get; set; }
@@ -46,6 +47,7 @@ namespace ImageGlass.Theme
         public ThemeImage ViewPreviousImage { get; set; }
         public ThemeImage ZoomIn { get; set; }
         public ThemeImage ZoomOut { get; set; }
+        public ThemeImage ZoomToFit { get; set; }
 
         /// <summary>
         /// Icon collection for the theme
@@ -55,7 +57,7 @@ namespace ImageGlass.Theme
             About = new ThemeImage();
             ActualSize = new ThemeImage();
             AdjustWindowSize = new ThemeImage();
-            CheckedBackground = new ThemeImage();
+            Checkerboard = new ThemeImage();
             Convert = new ThemeImage();
             FullScreen = new ThemeImage();
             GoToImage = new ThemeImage();
@@ -67,6 +69,7 @@ namespace ImageGlass.Theme
             Refresh = new ThemeImage();
             RotateLeft = new ThemeImage();
             RotateRight = new ThemeImage();
+            Detele = new ThemeImage();
             ScaleToHeight = new ThemeImage();
             ScaleToWidth = new ThemeImage();
             Settings = new ThemeImage();
@@ -77,6 +80,7 @@ namespace ImageGlass.Theme
             ViewPreviousImage = new ThemeImage();
             ZoomIn = new ThemeImage();
             ZoomOut = new ThemeImage();
+            ZoomToFit = new ThemeImage();
         }
     }
 

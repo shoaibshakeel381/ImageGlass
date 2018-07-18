@@ -1,6 +1,6 @@
 ﻿/*
 ImageGlass Project - Image viewer for Windows
-Copyright (C) 2013-2016 DUONG DIEU PHAP
+Copyright (C) 2013-2018 DUONG DIEU PHAP
 Project homepage: http://imageglass.org
 
 This program is free software: you can redistribute it and/or modify
@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using ImageGlass.Services.Configuration;
 using System;
 using System.Windows.Forms;
 
@@ -41,6 +42,13 @@ namespace igcmd
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
+            // Check if the start up directory writable
+            GlobalSetting.IsStartUpDirWritable = GlobalSetting.CheckStartUpDirWritable();
+
+            // Enable Portable mode as default if possible
+            GlobalSetting.IsPortableMode = GlobalSetting.IsStartUpDirWritable;
+
             string topcmd = args[0].ToLower().Trim();
 
             if (topcmd == "igupdate")// check for update
@@ -51,14 +59,9 @@ namespace igcmd
             {
                 Core.AutoUpdate();
             }
-            else if (topcmd == "igpacktheme")// pack theme *.igtheme
+            else if (topcmd == "firstlaunch")
             {
-                //cmd: igcmd.exe igpacktheme "srcDir" "desFile"
-                Core.PackTheme(args[1], args[2]);
-            }
-            else if (topcmd == "iginstalltheme")//install theme
-            {
-                Core.InstallTheme(args[1]);
+                Application.Run(new frmFirstLaunch());
             }
         }
 

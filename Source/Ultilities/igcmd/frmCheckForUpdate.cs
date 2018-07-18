@@ -60,11 +60,13 @@ namespace igcmd
             t.IsBackground = true;
             t.Start();
 
-            //CheckForUpdate();
+
 
             FileVersionInfo fv = FileVersionInfo.GetVersionInfo(GlobalSetting.StartUpDir + "ImageGlass.exe");
 
             txtUpdates.Text = $"Current version: {fv.FileVersion}\r\n------------------------------\r\n\r\n";
+
+            //CheckForUpdate();
 
         }
 
@@ -111,6 +113,9 @@ namespace igcmd
                     }
                     picStatus.Image = igcmd.Properties.Resources.warning;
                     btnDownload.Enabled = true;
+
+                    GlobalSetting.IsNewVersionAvailable = true;
+                    
                 }
                 else
                 {
@@ -118,13 +123,17 @@ namespace igcmd
                     lblStatus.ForeColor = Color.FromArgb(23, 131, 238);
                     btnDownload.Enabled = false;
                     picStatus.Image = igcmd.Properties.Resources.ok;
+
+                    GlobalSetting.IsNewVersionAvailable = false;
                 }
+
+                GlobalSetting.SetConfig("IsNewVersionAvailable", GlobalSetting.IsNewVersionAvailable.ToString());
             }
 
             txtUpdates.Text += sb.ToString();
 
             //save last update
-            GlobalSetting.SetConfig("AutoUpdate", DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"));
+            GlobalSetting.SetConfig("AutoUpdate", DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss"));
         }
 
         private void lnkUpdateReadMore_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
